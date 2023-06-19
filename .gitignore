@@ -5,7 +5,7 @@
 .coverage
 .tox
 build
-/starlette_werkzeug_debugger.egg_info
+/starlette_werkzeug_debugger.egg-info
 /dist
 /htmlcov
 /coverage.xml
