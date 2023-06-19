@@ -1,0 +1,11 @@
+.envrc
+*~
+*.pyc
+.ropeproject
+.coverage
+.tox
+build
+/starlette_werkzeug_debugger.egg_info
+/dist
+/htmlcov
+/coverage.xml

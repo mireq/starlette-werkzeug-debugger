@@ -1,0 +1,47 @@
+[project]
+name = "starlette_werkzeug_debugger"
+description = "Werkzeug debugger middleware for Starlette"
+readme = "README.rst"
+requires-python = ">=3.10"
+keywords = ["starlette", "debugger", "middleware", "werkzeug"]
+license = {text = "MIT"}
+dynamic = ["version"]
+authors = [
+	{ name = "Miroslav Bendík", email = "miroslav.bendik@gmail.com" }
+]
+classifiers = [
+	"Programming Language :: Python :: 3",
+]
+dependencies = [
+	"werkzeug",
+	"starlette",
+]
+
+[project.urls]
+homepage = "https://github.com/mireq/starlette-werkzeug-debugger"
+documentation = "https://github.com/mireq/starlette-werkzeug-debugger"
+repository = "https://github.com/mireq/starlette-werkzeug-debugger"
+changelog = "https://github.com/mireq/starlette-werkzeug-debugger/blob/master/CHANGELOG.md"
+
+[project.optional-dependencies]
+dev = [
+	"tox",
+	"pylint",
+	"pre-commit",
+	"bump2version",
+	"commitizen"
+]
+
+[build-system]
+requires = ["setuptools", "setuptools-scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["starlette_werkzeug_debugger"]
+
+[tool.setuptools_scm]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.0.0"
+tag_format = "$version"
