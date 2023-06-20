@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
+
+import starlette_werkzeug_debugger
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
-import starlette_werkzeug_debugger
 
 
 def inner_error():
@@ -33,6 +35,10 @@ def build_app(**kwargs):
 	])
 
 
+def get_middleware(app):
+	return app.middleware_stack.app
+
+
 def test_correct_response():
 	app = build_app()
 	client = TestClient(app)
@@ -56,3 +62,19 @@ def test_serve_static():
 	response = client.get('/', params={'__debugger__': 'yes', 'cmd': 'resource', 'f': 'style.css'})
 	assert response.status_code == 200
 	assert response.headers['content-type'].startswith('text/css')
+
+
+def test_printpin(caplog):
+	caplog.set_level(logging.INFO)
+
+	app = build_app(evalex=True, pin_security=True, pin_logging=True)
+	client = TestClient(app)
+	client.get('/')
+	middleware = get_middleware(app)
+	middleware.pin = '4852'
+
+	# dont' print anything
+	response = client.get('/', params={'__debugger__': 'yes', 'cmd': 'printpin', 's': middleware.secret + 'x'})
+	assert middleware.pin not in caplog.text
+	response = client.get('/', params={'__debugger__': 'yes', 'cmd': 'printpin', 's': middleware.secret})
+	assert middleware.pin in caplog.text
