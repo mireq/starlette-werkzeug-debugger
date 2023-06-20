@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import logging
 
 import starlette_werkzeug_debugger
@@ -78,3 +79,28 @@ def test_printpin(caplog):
 	assert middleware.pin not in caplog.text
 	response = client.get('/', params={'__debugger__': 'yes', 'cmd': 'printpin', 's': middleware.secret})
 	assert middleware.pin in caplog.text
+
+
+def test_pinauth():
+	app = build_app(evalex=True, pin_security=True, pin_logging=True)
+	client = TestClient(app)
+	client.get('/')
+	middleware = get_middleware(app)
+	middleware.pin = '4852'
+
+	# wrong secret
+	response = client.get('/', params={'__debugger__': 'yes', 'cmd': 'pinauth', 'pin': middleware.pin, 's': middleware.secret + 'x'})
+	assert response.status_code == 500
+
+	# wrong pin
+	response = client.get('/', params={'__debugger__': 'yes', 'cmd': 'pinauth', 'pin': middleware.pin + '5', 's': middleware.secret})
+	assert response.status_code == 200
+	response_content = json.loads(response.content.decode('utf-8'))
+	assert not response_content['auth']
+
+	# correct pin
+	response = client.get('/', params={'__debugger__': 'yes', 'cmd': 'pinauth', 'pin': middleware.pin, 's': middleware.secret})
+	assert response.status_code == 200
+	response_content = json.loads(response.content.decode('utf-8'))
+	assert response_content['auth']
+	assert middleware.pin_cookie_name in response.cookies
