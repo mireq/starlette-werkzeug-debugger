@@ -32,3 +32,10 @@ def test_correct_response():
 	response = client.get('/ok/')
 	assert response.status_code == 200
 	assert response.content == b'"ok"'
+
+
+def test_error_response():
+	client = TestClient(app)
+	response = client.get('/')
+	assert response.status_code == 500
+	assert b"Werkzeug Debugger" in response.content
