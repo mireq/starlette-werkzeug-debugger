@@ -16,18 +16,21 @@ async def ok_response(request):
 	return JSONResponse("ok")
 
 
-middleware = [
-	Middleware(starlette_werkzeug_debugger.WerkzeugDebugMiddleware, evalex=True)
-]
 
 
-app = Starlette(debug=True, middleware=middleware, routes=[
-	Route('/', raise_error),
-	Route('/ok/', ok_response),
-])
+def build_app(**kwargs):
+	middleware = [
+		Middleware(starlette_werkzeug_debugger.WerkzeugDebugMiddleware, **kwargs)
+	]
+
+	return Starlette(debug=True, middleware=middleware, routes=[
+		Route('/', raise_error),
+		Route('/ok/', ok_response),
+	])
 
 
 def test_correct_response():
+	app = build_app()
 	client = TestClient(app)
 	response = client.get('/ok/')
 	assert response.status_code == 200
@@ -35,6 +38,7 @@ def test_correct_response():
 
 
 def test_error_response():
+	app = build_app()
 	client = TestClient(app)
 	response = client.get('/')
 	assert response.status_code == 500
