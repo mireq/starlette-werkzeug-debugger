@@ -21,28 +21,12 @@ class WerkzeugDebugMiddleware(DebuggedApplication):
 		self.app = app
 		self.dispatch_func = self.dispatch if dispatch is None else dispatch
 
-	def check_pin_trust(self, environ: dict) -> bool | None:
-		"""Checks if the request passed the pin test.  This returns `True` if the
-		request is trusted on a pin/cookie basis and returns `False` if not.
-		Additionally if the cookie's stored pin hash is wrong it will return
-		`None` so that appropriate action can be taken.
-		"""
-		if self.pin is None:
-			return True
-		request = environ['request']
-		val = request.cookies.get(self.pin_cookie_name)
-		if not val or "|" not in val:
-			return False
-		ts_str, pin_hash = val.split("|", 1)
-
-		try:
-			ts = int(ts_str)
-		except ValueError:
-			return False
-
-		if pin_hash != hash_pin(self.pin):
-			return None
-		return (time.time() - PIN_TIME) < ts
+	def get_wsgi_environ(self, request: Request) -> dict:
+		return {
+			'REQUEST_METHOD': request.method,
+			'HTTP_COOKIE': request.headers.get('cookie'),
+			'request': request,
+		}
 
 	async def debug_application(self, request: Request, call_next) -> Response:
 		contexts: list[t.ContextManager[t.Any]] = []
@@ -56,7 +40,7 @@ class WerkzeugDebugMiddleware(DebuggedApplication):
 				self.frames[id(frame)] = frame
 				self.frame_contexts[id(frame)] = contexts
 
-			is_trusted = bool(self.check_pin_trust({'request': request}))
+			is_trusted = bool(self.check_pin_trust(self.get_wsgi_environ(request)))
 			html = tb.render_debugger_html(
 				evalex=self.evalex,
 				secret=self.secret,
@@ -71,10 +55,7 @@ class WerkzeugDebugMiddleware(DebuggedApplication):
 
 		if request.query_params.get("__debugger__") == "yes":
 			# emulate werkzeug Request
-			request.environ = {
-				'REQUEST_METHOD': request.method,
-				'request': request,
-			}
+			request.environ = self.get_wsgi_environ(request)
 			request.args = request.query_params
 			request.is_secure = False
 
@@ -96,7 +77,7 @@ class WerkzeugDebugMiddleware(DebuggedApplication):
 				and cmd is not None
 				and frame is not None
 				and self.secret == secret
-				and self.check_pin_trust({'request': request})
+				and self.check_pin_trust(self.get_wsgi_environ(request))
 			):
 				response = self.execute_command(request, cmd, frame)  # type: ignore
 
