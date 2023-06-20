@@ -7,14 +7,18 @@ from starlette.testclient import TestClient
 import starlette_werkzeug_debugger
 
 
-async def raise_error(request):
-	local_var = 3
+def inner_error():
+	local_var = 'inner'
 	raise RuntimeError("Raised error")
+
+
+async def raise_error(request):
+	local_var = 'outer'
+	inner_error()
 
 
 async def ok_response(request):
 	return JSONResponse("ok")
-
 
 
 
@@ -43,3 +47,12 @@ def test_error_response():
 	response = client.get('/')
 	assert response.status_code == 500
 	assert b"Werkzeug Debugger" in response.content
+
+
+def test_serve_static():
+	app = build_app()
+	client = TestClient(app)
+	client.get('/')
+	response = client.get('/', params={'__debugger__': 'yes', 'cmd': 'resource', 'f': 'style.css'})
+	assert response.status_code == 200
+	assert response.headers['content-type'].startswith('text/css')
