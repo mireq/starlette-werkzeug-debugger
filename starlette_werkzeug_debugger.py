@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import time
 import typing as t
 from io import BytesIO
 
@@ -7,7 +6,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, DispatchFunction
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
-from werkzeug.debug import DebugTraceback, DebuggedApplication, hash_pin, PIN_TIME
+from werkzeug.debug import DebugTraceback, DebuggedApplication
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 
