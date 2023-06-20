@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import logging
+import re
 
 import starlette_werkzeug_debugger
 from starlette.applications import Starlette
@@ -104,3 +105,25 @@ def test_pinauth():
 	response_content = json.loads(response.content.decode('utf-8'))
 	assert response_content['auth']
 	assert middleware.pin_cookie_name in response.cookies
+
+
+def test_console():
+	app = build_app(evalex=True, pin_security=True, pin_logging=True)
+	client = TestClient(app)
+	exception_content = client.get('/').content.decode('utf-8')
+	middleware = get_middleware(app)
+	middleware.pin = '4852'
+
+	# login
+	response = client.get('/', params={'__debugger__': 'yes', 'cmd': 'pinauth', 'pin': middleware.pin, 's': middleware.secret})
+	cookies = response.cookies
+
+	frame_ids = re.findall(r'(?:frame-(\d+))', exception_content)
+
+	# content from inner variable
+	response = client.get('/', params={'__debugger__': 'yes', 'cmd': 'local_var', 'frm': frame_ids[-1], 's': middleware.secret})
+	assert b'inner' in response.content
+
+	# content from outer variable
+	response = client.get('/', params={'__debugger__': 'yes', 'cmd': 'local_var', 'frm': frame_ids[-2], 's': middleware.secret})
+	assert b'outer' in response.content
