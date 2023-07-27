@@ -1,3 +1,9 @@
+## 0.1.1 (2023-07-27)
+
+### Feat
+
+- Removed dependencies to allow install customized werkzeug like https://pypi.org/project/Werkzeug-mireq/
+
 ## 0.1.0 (2023-06-20)
 
 ### Feat
