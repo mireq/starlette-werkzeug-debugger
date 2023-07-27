@@ -12,10 +12,7 @@ authors = [
 classifiers = [
 	"Programming Language :: Python :: 3",
 ]
-dependencies = [
-	"werkzeug",
-	"starlette",
-]
+dependencies = []
 
 [project.urls]
 homepage = "https://github.com/mireq/starlette-werkzeug-debugger"
@@ -29,7 +26,9 @@ dev = [
 	"pylint",
 	"pre-commit",
 	"bump2version",
-	"commitizen"
+	"commitizen",
+	"werkzeug",
+	"starlette"
 ]
 
 [build-system]
