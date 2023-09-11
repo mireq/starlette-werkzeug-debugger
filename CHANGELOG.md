@@ -1,3 +1,9 @@
+## 0.2.0 (2023-09-11)
+
+### Perf
+
+- Optimized performance impact of middleware
+
 ## 0.1.1 (2023-07-27)
 
 ### Feat
