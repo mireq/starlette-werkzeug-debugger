@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import contextlib
 import json
 import logging
 import re
@@ -25,13 +26,18 @@ async def ok_response(request):
 	return JSONResponse("ok")
 
 
+@contextlib.asynccontextmanager
+async def lifespan(app):
+	# only to test scope["type"]
+	yield
+
 
 def build_app(**kwargs):
 	middleware = [
 		Middleware(starlette_werkzeug_debugger.WerkzeugDebugMiddleware, **kwargs)
 	]
 
-	return Starlette(debug=True, middleware=middleware, routes=[
+	return Starlette(debug=True, middleware=middleware, lifespan=lifespan, routes=[
 		Route('/', raise_error),
 		Route('/ok/', ok_response),
 	])
@@ -43,10 +49,10 @@ def get_middleware(app):
 
 def test_correct_response():
 	app = build_app()
-	client = TestClient(app)
-	response = client.get('/ok/')
-	assert response.status_code == 200
-	assert response.content == b'"ok"'
+	with TestClient(app) as client:
+		response = client.get('/ok/')
+		assert response.status_code == 200
+		assert response.content == b'"ok"'
 
 
 def test_error_response():
